@@ -1,29 +1,23 @@
-FROM alpine
+FROM python:3.7-alpine
 
-# Install curl, python3, pip3, aws-cli and set PATH
- RUN apk --no-cache add curl python3 && \
-    python3 -m ensurepip && \
-    pip3 install --no-cache --upgrade pip setuptools wheel && \
-    pip3 install awscli --upgrade --user
-ENV PATH /root/.local/bin:$PATH
 
-# Set AWS Arguments
-#ENV AWS_KEY
-#ENV AWS_SECRET_KEY
-#ENV AWS_REGION
+RUN mkdir /root/.aws
+RUN pip3 --no-cache-dir install --upgrade awscli
+RUN pip3 install requests
+RUN pip3 install boto3
 
-#ARG api_url
-#ARG api_token
-#ARG username
-#ARG password
+RUN apk add --no-cache bash
+RUN apk add bash
 
-# Configure AWS arguments
-#RUN aws configure set aws_access_key_id $AWS_KEY \
- #   && aws configure set aws_secret_access_key $AWS_SECRET_KEY \
-  #  && aws configure set default.region $AWS_REGION
+ENV API_TOKEN=5563ff177863
+ENV BASE_REPORT_URL=http://10.110.3.66:4242/
+ENV JOB_ID=42
+ENV IP_ADDRESSES=192.168.1.1
+ENV BASE_API_URL=http://10.110.3.66:4242/scanjob/
 
 ### copy bash script and change permission
 RUN mkdir workspace
-COPY scan-api.sh /workspace
-RUN chmod +x  /workspace/scan-api.sh 
-CMD ["/bin/sh", "/workspace/scan-api.sh"]
+COPY scan.py /workspace
+RUN chmod +x  /workspace/scan.py
+### copy python script and change permission
+CMD ["sh", "-c", "python /workspace/scan.py --api_token $API_TOKEN --base_api_url $BASE_API_URL --base_report_url $BASE_REPORT_URL --job_id $JOB_ID --ip_addresses $IP_ADDRESSES"]
